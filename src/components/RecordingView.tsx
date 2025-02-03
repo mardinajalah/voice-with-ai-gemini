@@ -41,7 +41,7 @@ const RecordingView = () => {
       }),
     });
     const res = await req.json();
-    speakResponse(res.response);
+    speakResponse(res.response || "");
   };
 
   const speakResponse = (text: string) => {
