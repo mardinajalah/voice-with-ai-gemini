@@ -4,19 +4,19 @@ import { useState, useRef, useEffect } from "react";
 declare global {
   interface Window {
     webkitSpeechRecognition: any;
+    SpeechRecognitionEvent: any;
+    
   }
 }
 
 const RecordingView = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
 
-  const voiceToText = useRef<any>(null);
+  const voiceToText = useRef<InstanceType<typeof window.webkitSpeechRecognition> | null>(null);
   const startRecording = () => {
     setIsRecording(true);
     voiceToText.current = new window.webkitSpeechRecognition();
-    voiceToText.current.continuous = true;
-    voiceToText.current.interimResults = true;
-    voiceToText.current.onresult = (event: any) => {
+    voiceToText.current.onresult = (event: typeof window.SpeechRecognitionEvent) => {
       const { transcript } = event.results[0][0];
       fetchVoiceToText(transcript);
     };
@@ -42,15 +42,15 @@ const RecordingView = () => {
         prompt: text,
       }),
     });
-    const res = await req.json();
-    speakResponse(res.response);
+    const { response } = await req.json();
+    speakResponse(response);
   };
 
   const speakResponse = (text: string) => {
     const synth = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = synth.getVoices();
-    const naturalVoice = voices.find((voice) => voice.name.includes("Google")) || voices[0];
+    const naturalVoice = voices[0];
     utterance.voice = naturalVoice;
 
     synth.speak(utterance);
