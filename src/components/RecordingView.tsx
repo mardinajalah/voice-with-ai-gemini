@@ -1,36 +1,9 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-    SpeechRecognitionEvent: any;
-    
-  }
-}
+import { useState } from "react";
+import { useNextjsAudioToTextRecognition } from "nextjs-audio-to-text-recognition";
 
 const RecordingView = () => {
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-
-  const voiceToText = useRef<InstanceType<typeof window.webkitSpeechRecognition> | null>(null);
-  const startRecording = () => {
-    setIsRecording(true);
-    voiceToText.current = new window.webkitSpeechRecognition();
-    voiceToText.current.onresult = (event: typeof window.SpeechRecognitionEvent) => {
-      const { transcript } = event.results[0][0];
-      fetchVoiceToText(transcript);
-    };
-
-    voiceToText.current.start();
-  };
-
-  useEffect(() => {
-    return () => {
-      if (voiceToText.current) {
-        voiceToText.current.stop();
-      }
-    };
-  }, []);
+  const { isListening, transcript, startListening, stopListening } = useNextjsAudioToTextRecognition({ lang: "id-ID", continuous: true });
 
   const fetchVoiceToText = async (text: string) => {
     const req = await fetch("/api", {
@@ -56,24 +29,18 @@ const RecordingView = () => {
     synth.speak(utterance);
   };
 
-  const stopRecording = () => {
-    if (voiceToText.current) {
-      voiceToText.current.stop();
-      setIsRecording(false);
-    }
-  };
-
   const hendleClick = () => {
-    if (isRecording) {
-      stopRecording();
+    if (isListening) {
+      stopListening();
+      fetchVoiceToText(transcript);
     } else {
-      startRecording();
+      startListening();
     }
   };
 
   return (
     <div>
-      {isRecording ? (
+      {isListening ? (
         <button className='bg-red-400 hover:bg-red-500 p-4 rounded-full' onClick={hendleClick}>
           <svg xmlns='http://www.w3.org/2000/svg' className='w-12 h-12' viewBox='0 -960 960 960' fill='#fff'>
             <path d='M520-200v-560h240v560H520Zm-320 0v-560h240v560H200Zm400-80h80v-400h-80v400Zm-320 0h80v-400h-80v400Zm0-400v400-400Zm320 0v400-400Z' />
