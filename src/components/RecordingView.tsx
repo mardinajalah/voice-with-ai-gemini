@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { useNextjsAudioToTextRecognition } from "nextjs-audio-to-text-recognition";
 
 const RecordingView = () => {
